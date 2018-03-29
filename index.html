@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>US Map Visualization</title>
+    <style>
+        div, h2 {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        h2,h1 {
+            text-align: center;
+            font-family: 'Helvetica Neue';
+        }
+        h1 {
+            font-size: 500;
+            font-weight: bolder;
+        }
+    </style>
+</head>
+<body>
+    <h1>US Map Visualizing Historical Congress Members</h1>
+    <h2>Map showing number of congress members in history with the name John per state</h2>
+    <div id="container1" style="position: relative; width: 500px; height: 300px;"></div>
+    <h2>Map showing number of congress members in history who are women per state</h2>
+    <div id="container2" style="position: relative; width: 500px; height: 300px;"></div>
+    <h2>Map showing number of John's greater than number of women per state in the history of congress</h2>
+    <div id="container3" style="position: relative; width: 500px; height: 300px;"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+    <script src="node_modules/datamaps/dist/datamaps.all.min.js"></script>
+    <script>
+        function seriesToDataset(series,color1,color2){
+            var dataset = {};
+            var onlyValues = series.map(function(obj){ return obj[1]; });
+            var minValue = Math.min.apply(null, onlyValues),
+                maxValue = Math.max.apply(null, onlyValues);
+            var paletteScale = d3.scale.linear()
+                .domain([minValue,maxValue])
+                .range([color1,color2]);
+            series.forEach(function(item){
+                var iso = item[0],
+                        value = item[1];
+                dataset[iso] = { numberOf: value, fillColor: paletteScale(value) };
+            });
+            return dataset;
+        }
+        
+        var johnSeries = [["ME",54], ["DE",34], ["AR",57], ["NV",10], ["MO",104], ["HI",2], ["DK",3], ["NH",25], ["VA",236], ["CO",35], ["OR",13], ["MS",70], ["IN",122], ["CA",167], ["RI",39], ["AZ",54], ["WI",67], ["NJ",88], ["MN",41], ["CT",78], ["NM",12], ["SD",15], ["TN",148], ["UT",12], ["MI",139], ["AL",86], ["MD",102], ["IL",162], ["GA",123], ["KS",23], ["PA",379], ["ND",5], ["VT",11], ["LA",76], ["ID",9], ["WY",9], ["WV",49], ["NC",96], ["SC",130], ["NY",440], ["MT",26], ["OH",229], ["NE",29], ["KY",166], ["MA",187], ["TX",156], ["OK",35], ["WA",33], ["FL",17], ["IA",56]];
+        
+        var womenSeries = [["MI",43], ["KS",20], ["MA",37], ["TX",45], ["NJ",40], ["ID",8], ["VI",11], ["MD",46], ["SC",7], ["NY",146], ["UT",6], ["NH",11], ["HI",28], ["IN",25], ["IA",1], ["GU",8], ["NV",20], ["WY",12], ["GA",15], ["ME",29], ["AR",12], ["RI",5], ["MN",18], ["PA",18], ["WI",15], ["DC",14], ["FL",75], ["SD",10], ["IL",67], ["AZ",14], ["VA",9], ["MO",41], ["TN",25], ["AL",11], ["CA",253], ["ND",2], ["WV",15], ["CO",27], ["DE",1], ["WA",50], ["KY",7], ["NM",10], ["AK",4], ["PR",1], ["NC",31], ["OK",3], ["OR",26], ["OH",72], ["NE",11], ["MT",2], ["LA",15], ["AS",2], ["CT",44]];
+        
+        var diffSeries = [["ME", 25], ["DE", 33], ["AR", 45], ["MO", 63], ["NH", 14], ["VA", 227], ["CO", 8], ["MS", 70], ["IN", 97], ["RI", 34], ["AZ", 40], ["WI", 52], ["NJ", 48], ["MN", 23], ["CT", 34], ["NM", 2], ["SD", 5], ["TN", 123], ["UT", 6], ["MI", 96], ["AL", 75], ["MD", 56], ["IL", 95], ["GA", 108], ["KS", 3], ["PA", 361], ["ND", 3], ["VT", 11], ["LA", 61], ["ID", 1], ["WV", 34], ["NC", 65], ["SC", 123], ["NY", 294], ["MT", 24], ["OH", 157], ["NE", 18], ["KY", 159], ["MA", 150], ["TX", 111], ["OK", 32], ["IA", 55]];
+        
+        var johnMap = new Datamap({
+            element: document.getElementById('container1'),
+            scope: 'usa',
+            fills: { defaultFill: '#F5F5F5' },
+            data: seriesToDataset(johnSeries,"#EFEFFF","#02386F"),
+            geographyConfig: {
+                borderColor: '#DEDEDE',
+                highlightBorderWidth: 2,
+                highlightFillColor: function(geo) {
+                    return geo['fillColor'] || '#F5F5F5';
+                },
+                highlightBorderColor: '#B7B7B7',
+                popupTemplate: function(geo, data) {
+                    if (!data) { return ; }
+                    return ['<div class="hoverinfo">',
+                        '<strong>', geo.properties.name, '</strong>',
+                        '<br>Number of Johns: <strong>', data.numberOf, '</strong>',
+                        '</div>'].join('');
+                }
+            }
+        });
+        
+        var womenMap = new Datamap({
+            element: document.getElementById('container2'),
+            scope: 'usa',
+            fills: { defaultFill: '#F5F5F5' },
+            data: seriesToDataset(womenSeries,"#fff4ef","#ff540a"),
+            geographyConfig: {
+                borderColor: '#DEDEDE',
+                highlightBorderWidth: 2,
+                highlightFillColor: function(geo) {
+                    return geo['fillColor'] || '#F5F5F5';
+                },
+                highlightBorderColor: '#B7B7B7',
+                popupTemplate: function(geo, data) {
+                    if (!data) { return ; }
+                    return ['<div class="hoverinfo">',
+                        '<strong>', geo.properties.name, '</strong>',
+                        '<br>Number of Women: <strong>', data.numberOf, '</strong>',
+                        '</div>'].join('');
+                }
+            }
+        });
+        
+        var diffMap = new Datamap({
+            element: document.getElementById('container3'),
+            scope: 'usa',
+            fills: { defaultFill: '#F5F5F5' },
+            data: seriesToDataset(diffSeries,"#effff0","#1ff92e"),
+            geographyConfig: {
+                borderColor: '#DEDEDE',
+                highlightBorderWidth: 2,
+                highlightFillColor: function(geo) {
+                    return geo['fillColor'] || '#F5F5F5';
+                },
+                highlightBorderColor: '#B7B7B7',
+                popupTemplate: function(geo, data) {
+                    if (!data) { return ; }
+                    return ['<div class="hoverinfo">',
+                        '<strong>', geo.properties.name, '</strong>',
+                        '<br>Number of Johns greater than Women: <strong>', data.numberOf, '</strong>',
+                        '</div>'].join('');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
